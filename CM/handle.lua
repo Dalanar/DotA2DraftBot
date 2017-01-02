@@ -45,7 +45,7 @@ end
 local captain_picked = false
 local use_drafter_bot = false
 function HandleCaptainPick()
-    if not HasHumanInTeam() or (GameTime() > 10) then
+    if not HasHumanInTeam() or (DotaTime() > -1) then
         if not captain_picked then
             captain_picked = true
             local first_bot = GetFirstBotPlayer()
