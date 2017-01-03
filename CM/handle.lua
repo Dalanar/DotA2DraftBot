@@ -240,10 +240,26 @@ function HandlePick(idx)
 end
 
 
+function AreHumansSelectedHeroes()
+    local my_boyz = GetTeamPlayers(GetTeam())
+    for _, player_id in pairs(my_boyz) do
+        if not IsPlayerBot(player_id) then
+            local selected_hero = GetSelectedHeroName(player_id)
+            if (selected_hero == nil) or (selected_hero == '') then
+                return false
+            end
+        end
+    end
+    
+    return true
+end
+
+
+local team_selected = false
 function HandleSelect()
     RefreshDraftState()
     
-    if not HasHumanInTeam() or (GetCMPhaseTimeRemaining() < 30) then
+    if (not team_selected) and (AreHumansSelectedHeroes() or (GetCMPhaseTimeRemaining() < 1)) then
         local my_boyz = GetTeamPlayers(GetTeam())
         --print(string.format('%s: Handle Select', GetTeamName()))
         local undecided_boyz = {}
@@ -262,6 +278,7 @@ function HandleSelect()
                 idx = idx + 1
             end
         end
+        team_selected = true
     end
 end
 
