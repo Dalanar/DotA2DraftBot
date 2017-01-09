@@ -23,8 +23,14 @@ with open('hero_bot_data.lua', 'w') as output:
     
     # Fill LaningInfo and HeroType
     output.write('heroes = {\n')
+    supported_list = []
+    not_supported_list = []
     for name, data in heroes['DOTAHeroes'].iteritems():
-        if isinstance(data, dict) and ('Bot' in data) and data.get('CMEnabled', '0') == '1':
+        if isinstance(data, dict) and data.get('CMEnabled', '0') == '1':
+            human_name = data['url'].replace('_', ' ')
+            if 'Bot' not in data:
+                not_supported_list.append(human_name)
+                continue
             laning_info = []
             try:
                 for key, value in data['Bot']['LaningInfo'].iteritems():
@@ -33,10 +39,23 @@ with open('hero_bot_data.lua', 'w') as output:
                 this_hero_type_raw = data['Bot']['HeroType'].split('|')
                 for hero_type in this_hero_type_raw:
                     this_hero_type |= hero_type_ids[hero_type.strip()]
-                output.write('    [\'%s\'] = {[\'HeroType\'] = %s, [\'LaningInfo\'] = {%s}},\n' % (name, this_hero_type, ', '.join(laning_info)))
+                if 'Loadout' not in data['Bot']:
+                    not_supported_list.append(human_name)
+                else:
+                    output.write('    [\'%s\'] = {[\'HeroType\'] = %s, [\'LaningInfo\'] = {%s}},\n' % (name, this_hero_type, ', '.join(laning_info)))
+                    supported_list.append(human_name)
             except KeyError as ex:
-                print 'Missing %s for %s' % (ex.message, name)
+                not_supported_list.append(human_name)
     output.write('}\n\n')
     
     # Write module exporting stuff #2
     output.write('for k,v in pairs(hero_bot_data) do _G._savedEnv[k] = v end\n')
+    
+    supported_list.sort()
+    print 'Fully operational:'
+    for hero in supported_list:
+        print ' - %s' % hero
+    not_supported_list.sort()
+    print '\nNot supported:'
+    for hero in not_supported_list:
+        print ' - %s' % hero
